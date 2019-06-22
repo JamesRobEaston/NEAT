@@ -1,11 +1,18 @@
 from NeuralNet import NeuralNet
 from Connection import Connection
+from NEAT import NEAT
 
 def neuralNetTest():
-    nn = NeuralNet(3, 4)
-    connections = nn.getConnections()
-    nn.insertNewNode(connections[1], 13, 8)
-    nn.show()
+    genSize = 3
+    neat = NEAT(generationSize = genSize, numInputs = 3, numOutputs = 4, nodeMutationChance = 1.0, existingConnectionMutationChance = 0.0, newConnectionMutationChance = 0.0)
+    scores = []
+    for i in range(genSize):
+        scores.append(i + 1)
+    newNets = neat.createNextGenerationFromNetworks(scores)
+    neat.setNeuralNets(newNets)
+    nets = neat.getNeuralNets()
+    for net in nets:
+        net.show()
 
 def main():
     neuralNetTest()

@@ -1,6 +1,7 @@
 import random
 import time
 import matplotlib.pyplot as plt
+from decimal import Context, Decimal, ROUND_HALF_UP
 from Node import Node
 from Connection import Connection
 
@@ -11,7 +12,7 @@ class NeuralNet:
         self.outputs = []
         self.nodes = []
         self.connections = []
-        random.seed(int(round(time.time() * 1000)))
+        random.seed()
         for i in range(numInputs):
             newInput = Node([], [], i + 1)
             self.inputs.append(newInput)
@@ -26,7 +27,7 @@ class NeuralNet:
             self.outputs.append(newOutput)
 
     def createNewNode(self, inNodes, innovation, nodeID):
-        random.seed(int(round(time.time() * 1000)))
+        random.seed()
         newNode = Node([], [], nodeID)
         maxIndex = 0
         for node in inNodes:
@@ -36,7 +37,7 @@ class NeuralNet:
             connection = Connection((1.0 * random.randrange(-100, 100))/100.0, node, newNode, innovation)
             self.connections.append(connection)
             
-        self.nodes.insert(newNode, maxIndex+1)
+        self.nodes.insert(maxIndex+1, newNode)
         return newNode
 
     def createNewInput(self, nodeID):
@@ -46,7 +47,7 @@ class NeuralNet:
 
     def createNewOutput(self, nodeID):
         newNode = self.createNewNode([], -1, nodeID)
-        self.inputs.append(newNode)
+        self.outputs.append(newNode)
         return newNode
 
     def insertNewNode(self, connection, innovation, nodeID):
@@ -65,7 +66,7 @@ class NeuralNet:
                 connection.disable()
 
     def getNonexistantConnections(self, innovation):
-        random.seed(int(round(time.time() * 1000)))
+        random.seed(int(self.round(time.time() * 1000)))
         nonExistantConnections = []
         for node in self.nodes:
             #Output nodes and nodes that are already connected to all other valid nodes do not have any possible connections
@@ -92,8 +93,8 @@ class NeuralNet:
     def addConnection(self, connection):
         if not connection.isEnabled():
             connection.enable()
-        outputNode = connection.getOutNode()
-        inputNode = connection.getInNode()
+        outputNode = connection.getOutputNode()
+        inputNode = connection.getInputNode()
         inputIndex = self.nodes.index(inputNode)
         outputIndex = self.nodes.index(outputNode)
         if inputIndex > outputIndex:
@@ -111,8 +112,20 @@ class NeuralNet:
             values.append(node.getValue)
         return values
 
+    def getConnectionByInnovationNumber(self, innovationNumber):
+        connection = None
+        connectionIndex = 0
+        while connection == None and connectionIndex < len(self.connections):
+            possibleConnection = self.connections[connectionIndex]
+            if possibleConnections.innocatoinNumber == innocationNumber:
+               connection = possibleConnection
+        return connection
+
     def getConnections(self):
         return self.connections
+
+    def getNodes(self):
+        return self.nodes
 
     def getInputs(self):
         return self.inputs
@@ -166,7 +179,7 @@ class NeuralNet:
         for nodeIndices in nodeIndicesAtXLocations:
             for i in range(len(nodeIndices)):
                 index = nodeIndices[i]
-                yValues[index] = 1.0 + (1.0 * i) * ((1.0 * maxNumNodesAtALocation)) / len(nodeIndices)
+                yValues[index] = 1.0 + (1.0 * i) + (1.0*(maxNumNodesAtALocation - len(nodeIndices)))/2
         
         lines = []
         for node in self.inputs:
@@ -202,3 +215,5 @@ class NeuralNet:
         for nextNode in nodesToExplore:
             self.recursiveDFS(nextNode, nodeDepth+1, nodeDepths)
                 
+    def round(self, num):
+        return int(Context(rounding=ROUND_HALF_UP).to_integral_exact(Decimal(num)))

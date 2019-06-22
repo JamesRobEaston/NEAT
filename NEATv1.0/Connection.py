@@ -25,6 +25,9 @@ class Connection:
     def getWeight(self):
         return self.weight
 
+    def setWeight(self, weight):
+        self.weight = weight
+
     def getInputNode(self):
         return self.inNode
 
