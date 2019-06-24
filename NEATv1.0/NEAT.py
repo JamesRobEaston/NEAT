@@ -79,6 +79,8 @@ class NEAT:
         allowedNumOffspring = []
         for species in speciation:
             allowedNumOffspring.append(0)
+        print(len(speciation))
+        print(len(speciationScores))
         
         #If the population has not increased by more than the required amount in the number of generations for long term improvement, only allow the top two species to reproduce
         self.scoreTotals.insert(0, sum(scores))
@@ -175,7 +177,7 @@ class NEAT:
     def speciate(self, prevSpeciation, generation, scores, compatibilityDistanceThreshold):
         random.seed()
         newSpeciation = []
-        scoreSpeciation = []
+        scoreSpeciation = []                                                                                                                                                                                                                                                                                                                                                  
         for species in prevSpeciation:
             newSpeciation.append([])
             scoreSpeciation.append([])
@@ -185,7 +187,6 @@ class NEAT:
             for i in range(len(prevSpeciation)):
                 species = prevSpeciation[i]
                 speciesRepresentative = species[random.randrange(len(species))]
-                compatibilityDistance = self.calculateCompatibilityDistance(neuralNet, speciesRepresentative)
                 speciesIndex += 1
                 if compatibilityDistance < compatibilityDistanceThreshold:
                     newSpeciation[i].append(neuralNet)
@@ -400,10 +401,11 @@ class NEAT:
                     newInnovation = False
                     nodeID = nodeInnovation[2]
                     innovation = nodeInnovation[3]
+                nodeIndex += 1
 
             #Add a new node with the appropriate values
             neuralNet.insertNewNode(connection, innovation, nodeID)
-            print(len(neuralNet.getNodes()))
+            
             #If this innovation is new, record it and update self.innovationNumber and self.nodeID
             if newInnovation:
                 inNodeID = connection.getInputNode().getID()
@@ -424,12 +426,13 @@ class NEAT:
                 newInnovation = True
                 connectionIndex = 0
                 while newInnovation and connectionIndex < len(self.newConnectionsThisGeneration):
-                    connectionsInnovation = self.newConnectionsThisGeneration[connectionIndex]
+                    connectionInnovation = self.newConnectionsThisGeneration[connectionIndex]
                     inNodeID = connectionInnovation[0]
                     outNodeID = connectionInnovation[1]
-                    if (connection.getInputNode().getNodeID() == inNodeID) and (connection.getOutputNode().getNodeID() == outNodeID):
+                    if (connection.getInputNode().getID() == inNodeID) and (connection.getOutputNode().getID() == outNodeID):
                         newInnovation = False
                         connection.setInnovation(connectionInnovation[2])
+                    connectionIndex += 1
 
                 #Add the new connection
                 neuralNet.addConnection(connection)

@@ -37,7 +37,7 @@ class Connection:
     def getInnovation(self):
         return self.innovation
 
-    def setInnovation(self, innocation):
+    def setInnovation(self, innovation):
         self.innovation = innovation
 
     def isEnabled(self):

@@ -53,6 +53,8 @@ class NeuralNet:
     def insertNewNode(self, connection, innovation, nodeID):
         newNode = Node([], [], nodeID)
         index = self.nodes.index(connection.getInputNode()) + 1
+        if len(self.inputs) > index:
+            index = len(self.inputs)
         newConnection1 = Connection(1.0, connection.getInputNode(), newNode, innovation)
         newConnection2 = Connection(connection.getWeight(), newNode, connection.getOutputNode(), innovation + 1)
         self.nodes.insert(index, newNode)
@@ -66,24 +68,31 @@ class NeuralNet:
                 connection.disable()
 
     def getNonexistantConnections(self, innovation):
-        random.seed(int(self.round(time.time() * 1000)))
+        random.seed()
         nonExistantConnections = []
         for node in self.nodes:
-            #Output nodes and nodes that are already connected to all other valid nodes do not have any possible connections
+            #print(node.getNumInConnections())
+            #Output nodes and nodes that are already connected to all other valid nodes do not have any possible out connections
             isOutputNode = node.getNumOutConnections() == 0
             if not isOutputNode:
                 validOutputs = self.nodes.copy()
+                
                 #Remove all nodes before this node
                 while validOutputs[0] != node:
                     validOutputs.pop(0)
-                #Remove all input nodes from the valid nodes since they cannot be connected to
+                
+                #Remove this node since it cant connect to itself
+                validOutputs.pop(0)
+
+                #Remove all input nodes
                 while validOutputs[0].getNumInConnections() == 0:
                     validOutputs.pop(0)
+
                 #Remove all nodes that this node is already connected to
                 existingOutputs = node.getOutNodes()
                 for output in existingOutputs:
                     validOutputs.remove(output)
-                    
+
                 for output in validOutputs:
                     connection = Connection((1.0 * random.randrange(-100, 100))/100.0, node, output, innovation)
                     connection.disable()
