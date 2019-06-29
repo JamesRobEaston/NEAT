@@ -29,24 +29,28 @@ class NeuralNet:
     def createNewNode(self, inNodes, innovation, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
-        maxIndex = 0
+        minIndex = 3
         for node in inNodes:
             index = self.nodes.index(node)
-            if(index > maxIndex):
-                maxIndex = index
+            if(index > minIndex):
+                minIndex = index + 1
             connection = Connection((1.0 * random.randrange(-100, 100))/100.0, node, newNode, innovation)
             self.connections.append(connection)
             
-        self.nodes.insert(maxIndex+1, newNode)
+        self.nodes.insert(minIndex, newNode)
         return newNode
 
     def createNewInput(self, nodeID):
-        newNode = self.createNewNode([], -1, nodeID)
+        random.seed()
+        newNode = Node([], [], nodeID)
+        self.nodes.insert(nodeID-1, newNode)
         self.inputs.append(newNode)
         return newNode
 
     def createNewOutput(self, nodeID):
-        newNode = self.createNewNode([], -1, nodeID)
+        random.seed()
+        newNode = Node([], [], nodeID)
+        self.nodes.append(newNode)
         self.outputs.append(newNode)
         return newNode
 
@@ -71,12 +75,11 @@ class NeuralNet:
         random.seed()
         nonExistantConnections = []
         for node in self.nodes:
-            #print(node.getNumInConnections())
             #Output nodes and nodes that are already connected to all other valid nodes do not have any possible out connections
             isOutputNode = node.getNumOutConnections() == 0
             if not isOutputNode:
                 validOutputs = self.nodes.copy()
-                
+
                 #Remove all nodes before this node
                 while validOutputs[0] != node:
                     validOutputs.pop(0)
@@ -91,13 +94,30 @@ class NeuralNet:
                 #Remove all nodes that this node is already connected to
                 existingOutputs = node.getOutNodes()
                 for output in existingOutputs:
+                    if not self.contains(validOutputs, output):
+                        print(node.getID())
+                        for out in existingOutputs:
+                            print(out.getID())
+                        print("--")
+                        for node in self.nodes:
+                            print(node.getID())
                     validOutputs.remove(output)
 
                 for output in validOutputs:
                     connection = Connection((1.0 * random.randrange(-100, 100))/100.0, node, output, innovation)
                     connection.disable()
                     nonExistantConnections.append(connection)
+       
         return nonExistantConnections
+
+    def contains(self, array, element):
+        contains = False
+        arrayIndex = 0
+        while (not contains) and (arrayIndex < len(array)):
+            contains = array[arrayIndex] == element
+            arrayIndex += 1
+    
+        return contains
 
     def addConnection(self, connection):
         if not connection.isEnabled():
@@ -132,6 +152,13 @@ class NeuralNet:
 
     def getConnections(self):
         return self.connections
+
+    def getEnabledConnections(self):
+        enabledConnections = []
+        for connection in self.connections:
+            if connection.isEnabled():
+                enabledConnections.append(connection)
+        return enabledConnections
 
     def getNodes(self):
         return self.nodes

@@ -79,8 +79,6 @@ class NEAT:
         allowedNumOffspring = []
         for species in speciation:
             allowedNumOffspring.append(0)
-        print(len(speciation))
-        print(len(speciationScores))
         
         #If the population has not increased by more than the required amount in the number of generations for long term improvement, only allow the top two species to reproduce
         self.scoreTotals.insert(0, sum(scores))
@@ -188,6 +186,7 @@ class NEAT:
                 species = prevSpeciation[i]
                 speciesRepresentative = species[random.randrange(len(species))]
                 speciesIndex += 1
+                compatibilityDistance = self.calculateCompatibilityDistance(neuralNet, speciesRepresentative)
                 if compatibilityDistance < compatibilityDistanceThreshold:
                     newSpeciation[i].append(neuralNet)
                     scoreSpeciation[i].append(scores[j])
@@ -204,8 +203,10 @@ class NEAT:
             species = newSpeciation[speciesIndex]
             if len(species) == 0:
                 newSpeciation.pop(speciesIndex)
+                scoreSpeciation.pop(speciesIndex)
             else:
                 speciesIndex += 1
+                
         return newSpeciation, scoreSpeciation
 
     def determineIfFitnessIsIncreasing(self, totalScores, requiredImprovement):
@@ -323,7 +324,7 @@ class NEAT:
         #Determine the connections for the new network
         connections = neuralNet1.getConnections()
         for connection in connections:
-            newConnections.append([connection.getInputNode().getID(), connection.getOutputNode().getID(), connection.getWeight(), connection.getInnovation()])
+            newConnections.append([connection.getInputNode().getID(), connection.getOutputNode().getID(), connection.getWeight(), connection.getInnovation(), connection.isEnabled()])
         connections = neuralNet2.getConnections()
         for connection in connections:
             innovation = connection.getInnovation()
@@ -339,13 +340,17 @@ class NEAT:
                 newConnections[connectionIndex][2] = (newConnections[connectionIndex][2] + connection.getWeight())/2
             #Otherwise, insert the new connection into the list
             else:
-                newConnections.insert(innovation - 1, [connection.getInputNode().getID(), connection.getOutputNode().getID(), connection.getWeight(), connection.getInnovation()])
+                newConnections.insert(innovation - 1, [connection.getInputNode().getID(), connection.getOutputNode().getID(), connection.getWeight(), connection.getInnovation(), connection.isEnabled()])
+
         #Actually make the connections
         for connection in newConnections:
             inNode = newNodes[self.findNode(newNodes, connection[0])]
             outNode = newNodes[self.findNode(newNodes, connection[1])]
             newConnection = Connection(connection[2], inNode, outNode, connection[3])
+            isEnabled = connection[4]
             child.addConnection(newConnection)
+            if not isEnabled:
+                newConnection.disable()
 
         return child
             
@@ -385,7 +390,7 @@ class NEAT:
         random.seed()
         chance = 0.01 * (1.0 * random.randrange(0, 100))
         if chance < mutationChance:
-            connections = neuralNet.getConnections()
+            connections = neuralNet.getEnabledConnections()
             connection = connections[random.randint(0, len(connections) - 1)]
             innovation = self.innovationNumber
             nodeID = self.nodeID
