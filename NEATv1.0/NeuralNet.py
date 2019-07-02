@@ -96,6 +96,11 @@ class NeuralNet:
                 for output in existingOutputs:
                     if not self.contains(validOutputs, output):
                         print(node.getID())
+                        print(output.getID())
+                        print("--")
+                        for out in output.outConnections:
+                            print(out.getOutputNode().getID())
+                        print("--")
                         for out in existingOutputs:
                             print(out.getID())
                         print("--")
