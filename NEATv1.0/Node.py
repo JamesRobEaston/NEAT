@@ -47,8 +47,8 @@ class Node:
     def getInNodes(self):
         inNodes = []
         for connection in self.inConnections:
-            outNodes.append(connection.getInputNode())
-        return outNodes
+            inNodes.append(connection.getInputNode())
+        return inNodes
 
     def setValue(self, value):
         self.value = value

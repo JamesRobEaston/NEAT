@@ -29,7 +29,7 @@ class NeuralNet:
     def createNewNode(self, inNodes, innovation, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
-        minIndex = 3
+        minIndex = len(self.inputs)
         for node in inNodes:
             index = self.nodes.index(node)
             if(index > minIndex):

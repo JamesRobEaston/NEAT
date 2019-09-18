@@ -23,19 +23,19 @@ def testNeuralNetConstructor():
         nodeInputs = outputNode.getInNodes()
         for i in range(len(inputs)):
             success = success and inputs[i] == nodeInputs[i]
-
-    #Ensure the nodes have seemingly random values by ensuring they are inconsistent
+    
+    #Ensure the connections have seemingly random values by ensuring they are inconsistent
     neuralNet2 = NeuralNet(numInputs = 10, numOutputs = 11)
     nodes2 = neuralNet2.getNodes()
-    for nodeIndex in range(len(nodes)):
-        success = success and nodes[nodeIndex].getValue() != nodes2[nodeIndex].getValue()
+    for connectionIndex in range(len(inputs)):
+        success = success and nodes[connectionIndex].getOutConnections()[0].getWeight() != nodes2[connectionIndex].getOutConnections()[0].getWeight()
 
     return success
 
 def testCreateNewNode():
     #Set up the test
     neuralNet = NeuralNet(numInputs = 1, numOutputs = 1)
-    newNode = neuralNet.createNewNode([], [], 2, 3)
+    newNode = neuralNet.createNewNode([], 2, 3)
     nodes = neuralNet.getNodes()
 
     #Ensure the node exists
@@ -49,15 +49,12 @@ def testCreateNewNode():
     success = success and newNode.getNumOutConnections() == 0
 
     #Ensure multiple nodes can be added
-    newNode2 = neuralNet.createNewNode([],[],3,4)
+    newNode2 = neuralNet.createNewNode([],3,4)
     success = success and newNode2 != None
-    success = success and nodes[2] == newNode2
+    success = success and nodes[1] == newNode2
 
     #Ensure the nodes are not the same
     success = success and newNode != newNode2
-    
-    #Ensure the value is seemingly random by ensuring it is inconsistent    success = success and 
-    success = success and newNode.getValue() != newNode2.getValue()
 
     return success
 
@@ -66,7 +63,7 @@ def testCreateNewInput():
     neuralNet = NeuralNet(numInputs = 1, numOutputs = 1)
     newNode = neuralNet.createNewInput(3)
     nodes = neuralNet.getNodes()
-    inputs = neuralNet.createInputs()
+    inputs = neuralNet.getInputs()
 
     #Ensure the node exists
     success = newNode != None
@@ -84,7 +81,7 @@ def testCreateNewInput():
     success = success and newNode.getNumOutConnections() == 0
 
     #Ensure multiple nodes can be added
-    newNode2 = neuralNet.createNewInput([],[],3,4)
+    newNode2 = neuralNet.createNewInput(4)
     success = success and newNode2 != None
     success = success and nodes[0] == newNode2
     success = success and len(inputs) == 3
@@ -94,7 +91,7 @@ def testCreateNewInput():
 def testCreateNewOutput():
     #Set up the test
     neuralNet = NeuralNet(numInputs = 1, numOutputs = 1)
-    newNode = neuralNet.createNewInput(3)
+    newNode = neuralNet.createNewOutput(3)
     nodes = neuralNet.getNodes()
     outputs = neuralNet.getOutputs()
 
@@ -114,22 +111,22 @@ def testCreateNewOutput():
     success = success and newNode.getNumOutConnections() == 0
 
     #Ensure multiple nodes can be added
-    newNode2 = neuralNet.createNewOutput([],[],3,4)
+    newNode2 = neuralNet.createNewOutput(4)
     success = success and newNode2 != None
-    success = success and nodes[2] == newNode2
+    success = success and nodes[3] == newNode2
     success = success and len(outputs) == 3
 
     #Ensure adding another node affects the position of outputs appropriately
-    neuralNet.createNewNode()
-    success = success and nodes[2] == newNode
-    success = success and nodes[3] == newNode2    
+    neuralNet.createNewNode([], 3, 5)
+    success = success and nodes[3] == newNode
+    success = success and nodes[4] == newNode2    
 
     return success
 
 def testInsertNewNode():
     #Set up the test
     neuralNet = NeuralNet(numInputs = 1, numOutputs = 1)
-    connection = neuralNet.getInputs()[0]
+    connection = neuralNet.getInputs()[0].getOutConnections()[0]
     newNode = neuralNet.insertNewNode(connection, 2, 3)
     nodes = neuralNet.getNodes()
 
@@ -165,7 +162,7 @@ def testInsertNewNode():
 
     #Ensure that a node can be connected between previously inserted nodes
     connection = newNode2.getOutConnections()[0]
-    newNode3 = neuralNet.createNewOutput(connection,3,5)
+    newNode3 = neuralNet.insertNewNode(connection,3,5)
     success = success and newNode3 != None
     success = success and nodes[2] == newNode3
 
@@ -183,27 +180,61 @@ def testGetNonexistantConnections():
     success = len(neuralNet.getNonexistantConnections(0)) == 0
 
     #Insert a node and ensure that the reported nonexistant connections is correct
-    neuralNet.insertNewNode(neuralNet.getInputs[0].getOutConnections()[0], 2, 11)
-    nonexistantConnections = neuralNet.getNonexistantConnections()
+    neuralNet.insertNewNode(neuralNet.getInputs()[0].getOutConnections()[0], 2, 11)
+    nonexistantConnections = neuralNet.getNonexistantConnections(0)
     success = success and len(nonexistantConnections) == 9
-    nonexistantPairs = [[2,11],[3,11],[4,11],[5,11],[11,7],[11,8],[11,9],[11,10],[1,10]]
+    nonexistantPairs = [[2,11],[3,11],[4,11],[5,11],[11,7],[11,8],[11,9],[11,10],[1,6]]
+
+    for i in range(len(nonexistantConnections)):
+        connection = nonexistantConnections[i]
+        foundPair = False
+        pairIndex = 0
+        inNode = connection.getInputNode().getID()
+        outNode = connection.getOutputNode().getID()
+        while pairIndex < len(nonexistantPairs) and not foundPair:
+            pair = nonexistantPairs[pairIndex]
+            if pair[0] == inNode and pair[1] == outNode:
+                foundPair = True
+            else:
+                pairIndex += 1
+        if foundPair:
+            del nonexistantPairs[pairIndex]
+        else:
+            success = False
+
+    return success
     
 def testNeuralNet():
     success = testNeuralNetConstructor()
-    if not success:
+    if success:
+        print("Neural Net Constructor Test succeeded.")
+    else:
         print("Neural Net Constructor Test failed.")
     success = testCreateNewNode()
-    if not success:
+    if success:
+        print("Create New Node Test succeeded.")
+    else:
         print("Create New Node Test failed.")
     success = testCreateNewInput()
-    if not success:
+    if success:
+        print("Create New Input Test succeeded.")
+    else:
         print("Create New Input Test failed.")
     success = testCreateNewOutput()
-    if not success:
+    if success:
+        print("Create New Output Test succeeded.")
+    else:
         print("Create New Output Test failed.")
     success = testInsertNewNode()
-    if not success:
+    if success:
+        print("Insert New Node Test Test succeeded.")
+    else:
         print("Insert New Node Test failed.")
+    success = testGetNonexistantConnections()
+    if success:
+        print("Get Nonexistant Connections Test succeeded.")
+    else:
+        print("Get Nonexistant Connections Test failed.")
 
 def fullTest():
     genSize = 10
@@ -221,6 +252,7 @@ def fullTest():
         net.show()
 
 def main():
+    print("Testing NeuralNet.py")
     testNeuralNet()
 
 main()
