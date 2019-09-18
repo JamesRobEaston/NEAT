@@ -43,7 +43,7 @@ class NeuralNet:
     def createNewInput(self, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
-        self.nodes.insert(nodeID-1, newNode)
+        self.nodes.insert(0, newNode)
         self.inputs.append(newNode)
         return newNode
 
@@ -65,10 +65,11 @@ class NeuralNet:
         self.connections.append(newConnection1) 
         self.connections.append(newConnection2)
         connection.disable()
+        return newNode
 
     def disableConnection(self, inNode, outNode):
         for connection in self.connections:
-            if connection.isEnabled() and connection.getInputNode == inNode and connection.getOutputNode() == outNode:
+            if connection.isEnabled() and connection.getInputNode() == inNode and connection.getOutputNode() == outNode:
                 connection.disable()
 
     def getNonexistantConnections(self, innovation):
@@ -78,7 +79,9 @@ class NeuralNet:
             #Output nodes and nodes that are already connected to all other valid nodes do not have any possible out connections
             isOutputNode = node.getNumOutConnections() == 0
             if not isOutputNode:
-                validOutputs = self.nodes.copy()
+                validOutputs = []
+                for validNode in self.nodes:
+                    validOutputs.append(validNode)
 
                 #Remove all nodes before this node
                 while validOutputs[0] != node:
@@ -155,6 +158,15 @@ class NeuralNet:
                connection = possibleConnection
         return connection
 
+    def areNodesOrdered(self):
+        isOrdered = True
+        index = 0
+        while isOrdered and index < len(self.nodes):
+            currNode = self.nodes[index]
+            for output in currNode.getOutNodes():
+                isOrdered = isOrdered and index < self.nodes.index(output)
+        return isOrdered
+
     def getConnections(self):
         return self.connections
 
@@ -181,6 +193,27 @@ class NeuralNet:
             if nodeID == node.getID():
                 nodeIndex = i
         return nodeIndex
+
+    def isOrdered(self):
+        isOrdered = True
+        nodeIndex = 0
+        offNodeIn = -1
+        offNodeOut = -1
+        while isOrdered and nodeIndex < len(self.nodes):
+            node = self.nodes[nodeIndex]
+            outNodes = node.getOutNodes()
+            thisIndex = self.getNodeIndex(node.getID())
+            outNodeIndex = 0
+            while isOrdered and outNodeIndex < len(outNodes):
+                outNode = outNodes[outNodeIndex]
+                outNodeIndex = self.getNodeIndex(outNode.getID())
+                isOrdered = thisIndex < outNodeIndex
+                outNodeIndex += 1
+            nodeIndex += 1
+        if not isOrdered:
+            offNodeIn = node.getID()
+            offNodeOut = outNode.getID()
+        return isOrdered, offNodeIn, offNodeOut
 
     def show(self):
         xValues = []

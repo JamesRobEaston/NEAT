@@ -374,9 +374,45 @@ class NEAT:
         return contains
 
     def mutate(self, neuralNet):
+        isOrdered, offNodeIn, offNodeOut = neuralNet.isOrdered()
+        if not isOrdered:
+            print("Ordering issue PRE-mutation:")
+            print("In Node: " + str(offNodeIn))
+            print("Out Node: " + str(offNodeOut))
+            print("Nodes:")
+            for node in neuralNet.getNodes():
+                print(node.getID())
+            print("---------------")
         self.existingConnectionMutation(self.existingConnectionMutationChance, neuralNet)
+        isOrdered, offNodeIn, offNodeOut = neuralNet.isOrdered()
+        if not isOrdered:
+            print("Ordering issue Post-existingConnectionMutation:")
+            print("In Node: " + str(offNodeIn))
+            print("Out Node: " + str(offNodeOut))
+            print("Nodes:")
+            for node in neuralNet.getNodes():
+                print(node.getID())
+            print("---------------")
         self.nodeMutation(self.nodeMutationChance, neuralNet)
+        isOrdered, offNodeIn, offNodeOut = neuralNet.isOrdered()
+        if not isOrdered:
+            print("Ordering issue Post-nodeMutation:")
+            print("In Node: " + str(offNodeIn))
+            print("Out Node: " + str(offNodeOut))
+            print("Nodes:")
+            for node in neuralNet.getNodes():
+                print(node.getID())
+            print("---------------")
         self.connectionMutation(self.connectionMutationChance, neuralNet)
+        isOrdered, offNodeIn, offNodeOut = neuralNet.isOrdered()
+        if not isOrdered:
+            print("Ordering issue Post-connectionMutation:")
+            print("In Node: " + str(offNodeIn))
+            print("Out Node: " + str(offNodeOut))
+            print("Nodes:")
+            for node in neuralNet.getNodes():
+                print(node.getID())
+            print("---------------")
         
     def existingConnectionMutation(self, mutationChance, neuralNet):
         connections = neuralNet.getConnections()
