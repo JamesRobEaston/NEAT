@@ -177,7 +177,7 @@ def testGetNonexistantConnections():
     neuralNet = NeuralNet(numInputs = 5, numOutputs = 5)
 
     #Ensure there are no nonexistant connections
-    success = len(neuralNet.getNonexistantConnections(0)) == 0
+    success = len(neuralNet.getNonexistantConnections()) == 0
 
     #Insert a node and ensure that the reported nonexistant connections is correct
     neuralNet.insertNewNode(neuralNet.getInputs()[0].getOutConnections()[0], 2, 11)

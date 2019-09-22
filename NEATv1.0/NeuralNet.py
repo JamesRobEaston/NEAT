@@ -7,6 +7,8 @@ from Connection import Connection
 
 class NeuralNet:
 
+    #The constructor for the Neural Net. Creates a neural net with the specified number of inputs and outputs where every
+    #input is connected to every output. Each connection has a random weight.
     def __init__(self, numInputs = 0, numOutputs = 0):
         self.inputs = []
         self.outputs = []
@@ -26,6 +28,15 @@ class NeuralNet:
             self.nodes.append(newOutput)
             self.outputs.append(newOutput)
 
+    #The method to insert a new node into the neural net without inserting over a previous connection.
+    #
+    #Inputs: A list of nodes which are inputs for the new node
+    #        The innovation number for the new node
+    #        The new node's ID
+    #
+    #Outputs: The new node
+    #
+    #Side effects: The new node is added to this list of nodes and is inserted appropriately into the neural net
     def createNewNode(self, inNodes, innovation, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
@@ -40,6 +51,13 @@ class NeuralNet:
         self.nodes.insert(minIndex, newNode)
         return newNode
 
+    #The method to create a new node that is an input
+    #
+    #Inputs: The node's ID
+    #
+    #Outputs: The new input node
+    #
+    #Side effects: The new input is added to this neural net's list of inputs and nodes
     def createNewInput(self, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
@@ -47,6 +65,13 @@ class NeuralNet:
         self.inputs.append(newNode)
         return newNode
 
+    #The method to create a new node that is an output
+    #
+    #Inputs: The node's ID
+    #
+    #Outputs: The new output node
+    #
+    #Side effects: The new output is added to this neural net's list of output and nodes
     def createNewOutput(self, nodeID):
         random.seed()
         newNode = Node([], [], nodeID)
@@ -54,6 +79,18 @@ class NeuralNet:
         self.outputs.append(newNode)
         return newNode
 
+    #The method to insert a new node into the neural net by "breaking" an existing connection. That is, a new node
+    #is created such that it has a connection to the given connection's input and a connection to the given connection's
+    #output.
+    #
+    #Inputs: The connection to be broken
+    #        The innovation number for the new node
+    #        The new node's ID
+    #
+    #Outputs: The new node
+    #
+    #Side effects: The new node is added to this list of nodes and is inserted appropriately into the neural net.
+    #              The connection given is disabled.
     def insertNewNode(self, connection, innovation, nodeID):
         newNode = Node([], [], nodeID)
         index = self.nodes.index(connection.getInputNode()) + 1
@@ -67,12 +104,28 @@ class NeuralNet:
         connection.disable()
         return newNode
 
+    #The method to disable a connection.
+    #
+    #Inputs: The node which is the input for the connection
+    #        The node which is the output for the connection
+    #
+    #Outputs: None
+    #
+    #Side effects: The connection specified by the inputs is disabled.
     def disableConnection(self, inNode, outNode):
         for connection in self.connections:
             if connection.isEnabled() and connection.getInputNode() == inNode and connection.getOutputNode() == outNode:
                 connection.disable()
 
-    def getNonexistantConnections(self, innovation):
+    #The method to get all of the connections between two nodes which do not currently have connections. These connections are disabled
+    #by default.
+    #
+    #Inputs: None
+    #
+    #Outputs: A list of diabled connections which link currently unlinked nodes.
+    #
+    #Side effects: None
+    def getNonexistantConnections(self):
         random.seed()
         nonExistantConnections = []
         for node in self.nodes:
@@ -118,6 +171,13 @@ class NeuralNet:
        
         return nonExistantConnections
 
+    #A helper method to determine if an array contains an element
+    #
+    #Inputs: The array and element
+    #
+    #Outputs: A boolean indicating if the element is in the array
+    #
+    #Side effects: None
     def contains(self, array, element):
         contains = False
         arrayIndex = 0
@@ -127,6 +187,13 @@ class NeuralNet:
     
         return contains
 
+    #The method to add a connection to this neural net
+    #
+    #Inputs: The connection to be added
+    #
+    #Outputs: None
+    #
+    #Side effects: The given connection is added to the list of connections.
     def addConnection(self, connection):
         if not connection.isEnabled():
             connection.enable()
@@ -138,7 +205,14 @@ class NeuralNet:
             self.nodes.remove(outputNode)
             self.nodes.insert(inputIndex, outputNode)
         self.connections.insert(connection.getInnovation()-1, connection)
-                     
+
+    #The method to compute the final values of the output layer given values for the input layer.
+    #
+    #Inputs: A list of the input values
+    #
+    #Outputs: A list of values which are the values of the output nodes in the order of the nodes.
+    #
+    #Side effects: The values of the nodes will be changed appropriately.  
     def feedforward(self, inputs):
         for i in range(len(inputs)):
             self.inputs[i].setValue(inputs[i])
@@ -149,6 +223,13 @@ class NeuralNet:
             values.append(node.getValue)
         return values
 
+    #The method to get a connection by its innovation number
+    #
+    #Inputs: The innovation number of the connection
+    #
+    #Outputs: The connection with the given innovation number
+    #
+    #Side effects: None
     def getConnectionByInnovationNumber(self, innovationNumber):
         connection = None
         connectionIndex = 0
@@ -157,15 +238,6 @@ class NeuralNet:
             if possibleConnections.innocatoinNumber == innocationNumber:
                connection = possibleConnection
         return connection
-
-    def areNodesOrdered(self):
-        isOrdered = True
-        index = 0
-        while isOrdered and index < len(self.nodes):
-            currNode = self.nodes[index]
-            for output in currNode.getOutNodes():
-                isOrdered = isOrdered and index < self.nodes.index(output)
-        return isOrdered
 
     def getConnections(self):
         return self.connections
@@ -194,6 +266,14 @@ class NeuralNet:
                 nodeIndex = i
         return nodeIndex
 
+    #A helper method to determine if the nodes of this neural net are ordered in so that the
+    #outputs for any node after after that node
+    #
+    #Inputs: None
+    #
+    #Outputs: Whether the nodes in this neural network are ordered
+    #
+    #Side effects: None
     def isOrdered(self):
         isOrdered = True
         nodeIndex = 0
@@ -206,8 +286,8 @@ class NeuralNet:
             outNodeIndex = 0
             while isOrdered and outNodeIndex < len(outNodes):
                 outNode = outNodes[outNodeIndex]
-                outNodeIndex = self.getNodeIndex(outNode.getID())
-                isOrdered = thisIndex < outNodeIndex
+                outNodeListIndex = self.getNodeIndex(outNode.getID())
+                isOrdered = isOrdered and thisIndex < outNodeListIndex
                 outNodeIndex += 1
             nodeIndex += 1
         if not isOrdered:
@@ -215,6 +295,7 @@ class NeuralNet:
             offNodeOut = outNode.getID()
         return isOrdered, offNodeIn, offNodeOut
 
+    #All of the methods below this point are helper methods to display this neural network.
     def show(self):
         xValues = []
         yValues = []
